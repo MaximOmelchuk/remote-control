@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import { commands, commandsKeyType } from "../commands/commands";
 
 const onConnect = (wsClient: WebSocket) => {
-  console.log("connect");
+  console.log("WebSocket started!");
   wsClient.on("message", async (message: Buffer) => {
     console.log(message.toString());
     const [command, value1, value2] = message.toString().split(" ");
@@ -17,5 +17,7 @@ const onConnect = (wsClient: WebSocket) => {
     }
   });
 };
+
+
 
 export default onConnect;
