@@ -47,10 +47,7 @@ const commands: commandsType = {
     const position = await mouse.getPosition();
     return `mouse_position ${position.x},${position.y}`;
   },
-  async draw_circle(command, value1, value2) {
-    const position = await mouse.getPosition();
-    return `draw_circle ${position.x}`;
-  },
+
   async draw_rectangle(command, value1, value2) {
     const step1 = Number(value1);
     const step2 = Number(value2);
@@ -71,7 +68,28 @@ const commands: commandsType = {
     return `${command}`;
   },
   async draw_square(command, value1, value2) {
-    return await this.draw_rectangle(command, value1, value1)
+    return await this.draw_rectangle(command, value1, value1);
+  },
+  async draw_circle(command, value1, value2) {
+    mouse.config.mouseSpeed = 500;
+    const position = await mouse.getPosition();
+    await mouse.pressButton(Button.LEFT);
+    let x1 = position.x;
+    let y1 = position.y;
+    const radix = Number(value1);
+    const oneDegreeRad = +(Math.PI / 180).toFixed(5);
+
+    for (let i = 1; i <= 360; i++) {
+      const degree = oneDegreeRad * i;
+      const stepY = Math.sin(degree) * radix;
+      const stepX = Math.cos(+degree) * radix;
+      const y2 = y1 - stepY;
+      const x2 = x1 + radix - stepX;
+      const point = new Point(x2, y2);
+      await mouse.move(straightTo(point));
+    }
+    await mouse.releaseButton(Button.LEFT);
+    return `${command}`;
   },
 };
 
