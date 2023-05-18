@@ -1,13 +1,16 @@
 import {
   Button,
   Point,
+  Region,
   down,
   left,
   mouse,
   right,
   straightTo,
   up,
+  screen,
 } from "@nut-tree/nut-js";
+import Jimp from "jimp";
 
 type methodsArgs = {
   command: string;
@@ -90,6 +93,42 @@ const commands: commandsType = {
     }
     await mouse.releaseButton(Button.LEFT);
     return `${command}`;
+  },
+  async prnt_scrn(command, value1, value2) {
+    const position = await mouse.getPosition();
+    let stepX = 200;
+    let stepY = 200;
+    const x1 = position.x - 100;
+    const y1 = position.y - 100;
+    const screenWidth = await screen.width();
+    const screenHeight = await screen.height();
+    // if (x1 - 100 < 0) {
+    //   stepX = x1;
+    // }
+    // if (x1 + 100 > screenWidth) {
+    //   stepX = screenWidth - x1;
+    // }
+    // if (y1 - 100 < 0) {
+    //   stepY = y1;
+    // }
+    // if (y1 + 100 > screenHeight) {
+    //   stepY = screenHeight - y1;
+    // }
+    try {
+      const region = new Region(x1, y1, stepX, stepY);
+      const image = await (await screen.grabRegion(region)).toRGB();
+      const jimp = new Jimp({
+        data: image.data,
+        width: image.width,
+        height: image.height,
+      });
+      const base64Buffer = await jimp.getBufferAsync(Jimp.MIME_PNG);
+      const base64 = base64Buffer.toString("base64");
+      return `${command} ${base64}`;
+    } catch (e) {
+      console.log("Error: Screenshot area is out of screen");
+      return `${command}`;
+    }
   },
 };
 

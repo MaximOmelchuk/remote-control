@@ -15,8 +15,9 @@
     "nodemon": "^2.0.16"
   },
   "dependencies": {
-    "@nut-tree/nut-js": "^2.3.0",
+    "@nut-tree/nut-js": "^3.1.1",
     "@types/ws": "^8.5.4",
+    "jimp": "^0.22.8",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
