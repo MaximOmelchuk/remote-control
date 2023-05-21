@@ -11,23 +11,9 @@ import {
   screen,
 } from "@nut-tree/nut-js";
 import Jimp from "jimp";
-
-type methodsArgs = {
-  command: string;
-  value1: string;
-  value2: string | undefined;
-};
-
-type commandsMethod = {
-  (
-    command: string,
-    value1: string,
-    value2: string | undefined
-  ): Promise<string>;
-};
-type commandsType = {
-  [key: string]: commandsMethod;
-};
+import { commandsType } from "../types";
+import drawCircle from "../utils/drawCircle";
+import getPosition from "../utils/getPosition";
 
 const commands: commandsType = {
   async mouse_up(command, value1, value2) {
@@ -47,16 +33,14 @@ const commands: commandsType = {
     return `${command}`;
   },
   async mouse_position(command, value1, value2) {
-    const position = await mouse.getPosition();
-    return `mouse_position ${position.x},${position.y}`;
+    const [x, y] = await getPosition();
+    return `${command} ${x},${y}`;
   },
 
   async draw_rectangle(command, value1, value2) {
     const step1 = Number(value1);
     const step2 = Number(value2);
-    const position = await mouse.getPosition();
-    const x1 = position.x;
-    const y1 = position.y;
+    const [x1, y1] = await getPosition();
     mouse.config.mouseSpeed = 100;
     const point1 = new Point(x1, y1 - step2);
     await mouse.pressButton(Button.LEFT);
@@ -74,48 +58,20 @@ const commands: commandsType = {
     return await this.draw_rectangle(command, value1, value1);
   },
   async draw_circle(command, value1, value2) {
-    mouse.config.mouseSpeed = 500;
-    const position = await mouse.getPosition();
-    await mouse.pressButton(Button.LEFT);
-    let x1 = position.x;
-    let y1 = position.y;
     const radix = Number(value1);
-    const oneDegreeRad = +(Math.PI / 180).toFixed(5);
-
-    for (let i = 1; i <= 360; i++) {
-      const degree = oneDegreeRad * i;
-      const stepY = Math.sin(degree) * radix;
-      const stepX = Math.cos(+degree) * radix;
-      const y2 = y1 - stepY;
-      const x2 = x1 + radix - stepX;
-      const point = new Point(x2, y2);
-      await mouse.move(straightTo(point));
-    }
+    const [x1, y1] = await getPosition();
+    mouse.config.mouseSpeed = 500;
+    await mouse.pressButton(Button.LEFT);
+    await drawCircle(x1, y1, radix);
     await mouse.releaseButton(Button.LEFT);
     return `${command}`;
   },
   async prnt_scrn(command, value1, value2) {
-    const position = await mouse.getPosition();
-    let stepX = 200;
-    let stepY = 200;
-    const x1 = position.x - 100;
-    const y1 = position.y - 100;
-    const screenWidth = await screen.width();
-    const screenHeight = await screen.height();
-    // if (x1 - 100 < 0) {
-    //   stepX = x1;
-    // }
-    // if (x1 + 100 > screenWidth) {
-    //   stepX = screenWidth - x1;
-    // }
-    // if (y1 - 100 < 0) {
-    //   stepY = y1;
-    // }
-    // if (y1 + 100 > screenHeight) {
-    //   stepY = screenHeight - y1;
-    // }
+    const step = 200;
+    const [x1, y1] = await getPosition();
+
     try {
-      const region = new Region(x1, y1, stepX, stepY);
+      const region = new Region(x1, y1, step, step);
       const image = await (await screen.grabRegion(region)).toRGB();
       const jimp = new Jimp({
         data: image.data,
@@ -132,6 +88,4 @@ const commands: commandsType = {
   },
 };
 
-type commandsKeyType = keyof typeof commands;
-
-export { commands, commandsKeyType };
+export default commands;
